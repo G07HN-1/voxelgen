@@ -143,8 +143,9 @@
             const viewportHeight = window.innerHeight;
             const controlsHeight = document.getElementById("controls").offsetHeight + 150;
 
-            const width = Math.min(parseInt(document.getElementById("widthInput").value, 10), viewportWidth * 0.95);
-            const height = Math.min(parseInt(document.getElementById("heightInput").value, 10), viewportHeight - controlsHeight);
+            const width = parseInt(document.getElementById("widthInput").value, 10);
+            const height = parseInt(document.getElementById("heightInput").value, 10);
+
 
             const noisiness = parseInt(document.getElementById("noisinessInput").value, 10);
             const bgColor = document.getElementById("bgColorInput").value;

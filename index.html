@@ -13,6 +13,51 @@
             box-sizing: border-box;
         }
 
+        select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            background-color: #2f3e46;
+            color: #ffffff;
+            outline: none;
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+
+        select:focus {
+            background-color: #3d515a;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            width: 100%;
+            height: 42px;
+            border-radius: 8px;
+            background-color: #2f3e46;
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"]::before {
+            content: 'Off';
+            position: absolute;
+            top: 50%;
+            left: 1rem;
+            transform: translateY(-50%);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #4aa8c0;
+        }
+
+        input[type="checkbox"]:checked::before {
+            content: 'On';
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #111b21;
@@ -109,27 +154,41 @@
     <div id="controls">
         <div>
             <label for="widthInput">Width</label>
-            <input type="number" id="widthInput" value="512" />
+            <input type="number" id="widthInput" value="512" min="1" onchange="generate()" />
         </div>
         <div>
             <label for="heightInput">Height</label>
-            <input type="number" id="heightInput" value="512" />
+            <input type="number" id="heightInput" value="512" min="1" onchange="generate()" />
         </div>
         <div>
             <label for="noisinessInput">Noisiness</label>
-            <input type="number" id="noisinessInput" value="50" min="10" max="500" />
+            <input type="number" id="noisinessInput" value="50" min="10" max="500" onchange="generate()" />
         </div>
         <div>
             <label for="bgColorInput">Background Color</label>
-            <input type="color" id="bgColorInput" value="#7c46af" />
+            <input type="color" id="bgColorInput" value="#7c46af" onchange="generate()" />
         </div>
         <div>
             <label for="cubeColorInput">Cube Color</label>
-            <input type="color" id="cubeColorInput" value="#000000" />
+            <input type="color" id="cubeColorInput" value="#000000" onchange="generate()" />
+        </div>
+        <div>
+            <label for="sizeInput">Shape Scale</label>
+            <input type="number" id="sizeInput" value="1" min="1" max="50" step="1" onchange="generate()" />
+        </div>
+        <div>
+            <label for="shapeSelect">Shape</label>
+            <select id="shapeSelect" onchange="generate()">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+                <option value="triangle">Triangle</option>
+                <option value="hexagon">Hexagon</option>
+                <option value="pentagon">Pentagon</option>
+            </select>
         </div>
         <div>
             <label for="randomizeColorToggle">Randomize Colors</label>
-            <input type="checkbox" id="randomizeColorToggle" />
+            <input type="checkbox" id="randomizeColorToggle" onchange="generate()" />
         </div>
         <div>
             <label>&nbsp;</label>
@@ -211,8 +270,10 @@
             const maxAttempts = noisiness * 5;
 
             while (placed.length < noisiness && attempts < maxAttempts) {
+                const sizeInput = document.getElementById("sizeInput").value
+                console.log(sizeInput > 0 ? 1 : 1)
                 attempts++;
-                const size = Math.random() * 30 + 10;
+                const size = (Math.random() * 30 + 10) * sizeInput
                 const x = Math.random() * width;
                 const y = Math.random() * height;
 
@@ -254,10 +315,58 @@
                     ctx.rotate(rotationRadians);
                     const [r, g, b] = getCubeColor().map(c => Math.round(c * 255));
                     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    ctx.fillRect(-half, -half, size, size);
+                    const shape = document.getElementById("shapeSelect").value;
+                    drawShape(ctx, shape, size, alpha, [r, g, b]);
                     ctx.restore();
                 }
             }
+        }
+        function drawShape(ctx, shape, size, alpha, color) {
+            const half = size / 2;
+            ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
+
+            ctx.beginPath();
+
+            switch (shape) {
+                case 'circle':
+                    ctx.arc(0, 0, half, 0, Math.PI * 2);
+                    break;
+                case 'triangle':
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i / 3) * Math.PI * 2 - Math.PI / 2;
+                        const x = half * Math.cos(angle);
+                        const y = half * Math.sin(angle);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    break;
+                case 'hexagon':
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i / 6) * Math.PI * 2;
+                        const x = half * Math.cos(angle);
+                        const y = half * Math.sin(angle);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    break;
+                case 'pentagon':
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                        const x = half * Math.cos(angle);
+                        const y = half * Math.sin(angle);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    break;
+                default: // square
+                    ctx.fillRect(-half, -half, size, size);
+                    return;
+            }
+
+            ctx.fill();
         }
 
         function downloadImage() {
